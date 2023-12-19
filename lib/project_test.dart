@@ -1,13 +1,5 @@
 import 'package:flutter/material.dart';
 
-
-
-
-
-
-
-
-
 class AnimatedListSample extends StatefulWidget {
   const AnimatedListSample({super.key});
 
@@ -210,3 +202,5 @@ class CardItem extends StatelessWidget {
     );
   }
 }
+
+
