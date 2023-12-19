@@ -1,0 +1,189 @@
+// ignore_for_file: library_private_types_in_public_api
+
+import 'dart:io';
+
+import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart'; // Import image_picker package
+
+
+void main() {
+  runApp(const MyApp());
+}
+
+class MyApp extends StatelessWidget {
+  const MyApp({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      title: 'Flutter User App',
+      theme: ThemeData(
+        primarySwatch: Colors.blue,
+      ),
+      home: const HomePage(),
+    );
+  }
+}
+
+class HomePage extends StatelessWidget {
+  const HomePage({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('User App'),
+      ),
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: <Widget>[
+            ElevatedButton(
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const UserForm()),
+                );
+              },
+              child: const Text('Add User'),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const UserList()),
+                );
+              },
+              child: const Text('User List'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class UserForm extends StatefulWidget {
+  const UserForm({super.key});
+
+  @override
+  _UserFormState createState() => _UserFormState();
+}
+
+class _UserFormState extends State<UserForm> {
+  TextEditingController nameController = TextEditingController();
+  TextEditingController emailController = TextEditingController();
+  String? imagePath;
+
+  // Function to pick an image from the gallery
+Future<void> _pickImage() async {
+  final picker = ImagePicker();
+  final pickedFile = await picker.pickImage(source: ImageSource.gallery);
+
+  if (pickedFile != null) {
+    setState(() {
+      imagePath = pickedFile.path;
+    });
+  }
+}
+
+  // Function to add a new user to the list
+  void _addUser() {
+    String name = nameController.text.trim();
+    String email = emailController.text.trim();
+
+    if (name.isNotEmpty && email.isNotEmpty) {
+      User newUser = User(name: name, email: email, imagePath: imagePath);
+      // Add the new user to the list
+      // You may want to use a state management solution to update the UI
+      // e.g., Provider, Riverpod, Bloc, etc.
+      // For simplicity, I'm assuming that the UserList widget is stateful
+      UserList.users.add(newUser);
+
+      // Clear the controllers and image path after adding the user
+      nameController.clear();
+      emailController.clear();
+      setState(() {
+        imagePath = null;
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Add User'),
+      ),
+      body: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            TextFormField(
+              controller: nameController,
+              decoration: const InputDecoration(labelText: 'Name'),
+            ),
+            TextFormField(
+              controller: emailController,
+              decoration: const InputDecoration(labelText: 'Email'),
+            ),
+            ElevatedButton(
+              onPressed: _pickImage,
+              child: const Text('Pick Image'),
+            ),
+            if (imagePath != null)
+              Image.file(File(imagePath!)),
+            ElevatedButton(
+              onPressed: _addUser,
+              child: const Text('Add User'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class UserList extends StatefulWidget {
+  static List<User> users = [];
+
+  const UserList({super.key}); // Static list to hold users
+
+  @override
+  _UserListState createState() => _UserListState();
+}
+
+class _UserListState extends State<UserList> {
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('User List'),
+      ),
+      body: ListView.builder(
+        itemCount: UserList.users.length,
+        itemBuilder: (context, index) {
+          return ListTile(
+            leading: CircleAvatar(
+              backgroundImage: UserList.users[index].imagePath != null
+                  ? FileImage(File(UserList.users[index].imagePath!)) as ImageProvider<Object>?
+                  : const AssetImage('assets/default_avatar.png'),
+            ),
+            title: Text(UserList.users[index].name),
+            subtitle: Text(UserList.users[index].email),
+          );
+        },
+      ),
+    );
+  }
+}
+
+
+class User {
+  String name;
+  String email;
+  String? imagePath;
+
+  User({required this.name, required this.email, this.imagePath});
+}
